@@ -3,28 +3,20 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const authRoutes = require("./routes/auth.routes");
+const adminRoutes =require("./routes/admin.routes");
+
 const app = express();
 
-
-// Security
 app.use(helmet());
-
-
-// CORS
 app.use(cors());
-
-
-// Request logging
 app.use(morgan("dev"));
-
-
-// JSON body parser
 app.use(express.json());
 
 
-// URL encoded data
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
+app.use("/api/admin",adminRoutes);
+
 
 // Health check
 app.get("/", (req, res) => {
