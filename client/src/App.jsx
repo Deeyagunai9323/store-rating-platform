@@ -11,6 +11,8 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Unauthorized from "./pages/Unauthorized";
 
+import AdminDashboard from "./pages/admin/AdminDashboard";
+
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRoute from "./routes/RoleRoute";
 
@@ -60,9 +62,7 @@ const Placeholder = ({ title }) => {
 const App = () => {
   return (
     <BrowserRouter>
-
       <AuthProvider>
-
         <Routes>
 
           {/* =========================================
@@ -112,16 +112,22 @@ const App = () => {
               }
             >
 
+              {/* =================================
+                  ADMIN DASHBOARD
+              ================================= */}
+
               <Route
                 path="/admin/dashboard"
                 element={
                   <DashboardLayout>
-                    <Placeholder
-                      title="Admin Dashboard"
-                    />
+                    <AdminDashboard />
                   </DashboardLayout>
                 }
               />
+
+              {/* =================================
+                  ADMIN STORE MANAGEMENT
+              ================================= */}
 
               <Route
                 path="/admin/stores"
@@ -133,6 +139,10 @@ const App = () => {
                   </DashboardLayout>
                 }
               />
+
+              {/* =================================
+                  ADMIN USER MANAGEMENT
+              ================================= */}
 
               <Route
                 path="/admin/users"
@@ -258,9 +268,7 @@ const App = () => {
           />
 
         </Routes>
-
       </AuthProvider>
-
     </BrowserRouter>
   );
 };
