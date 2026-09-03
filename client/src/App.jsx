@@ -12,7 +12,7 @@ import Register from "./pages/auth/Register";
 import Unauthorized from "./pages/Unauthorized";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
-
+import AdminUsers from "./pages/admin/AdminUsers";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRoute from "./routes/RoleRoute";
 
@@ -144,16 +144,14 @@ const App = () => {
                   ADMIN USER MANAGEMENT
               ================================= */}
 
-              <Route
-                path="/admin/users"
-                element={
-                  <DashboardLayout>
-                    <Placeholder
-                      title="User Management"
-                    />
-                  </DashboardLayout>
-                }
-              />
+            <Route
+              path="/admin/users"
+              element={
+                <DashboardLayout>
+                  <AdminUsers />
+                </DashboardLayout>
+              }
+            />
 
             </Route>
 
