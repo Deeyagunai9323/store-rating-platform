@@ -1,4 +1,3 @@
-
 const bcrypt = require("bcryptjs");
 
 const { pool } = require("../config/database");
@@ -13,18 +12,24 @@ const getDashboard = async (req, res) => {
     try {
 
         const [[userCount]] = await pool.execute(
-            `SELECT COUNT(*) AS totalUsers
-             FROM users`
+            `
+            SELECT COUNT(*) AS total_users
+            FROM users
+            `
         );
 
         const [[storeCount]] = await pool.execute(
-            `SELECT COUNT(*) AS totalStores
-             FROM stores`
+            `
+            SELECT COUNT(*) AS total_stores
+            FROM stores
+            `
         );
 
         const [[ratingCount]] = await pool.execute(
-            `SELECT COUNT(*) AS totalRatings
-             FROM ratings`
+            `
+            SELECT COUNT(*) AS total_ratings
+            FROM ratings
+            `
         );
 
         return res.status(200).json({
@@ -32,9 +37,9 @@ const getDashboard = async (req, res) => {
             success: true,
 
             data: {
-                totalUsers: userCount.totalUsers,
-                totalStores: storeCount.totalStores,
-                totalRatings: ratingCount.totalRatings
+                total_users: userCount.total_users,
+                total_stores: storeCount.total_stores,
+                total_ratings: ratingCount.total_ratings
             }
 
         });
@@ -47,8 +52,11 @@ const getDashboard = async (req, res) => {
         );
 
         return res.status(500).json({
+
             success: false,
-            message: "Failed to load admin dashboard."
+
+            message: "Failed to fetch dashboard data."
+
         });
 
     }
@@ -74,17 +82,19 @@ const createUser = async (req, res) => {
 
 
         // -------------------------------------------------
-        // Check duplicate email
+        // Check whether email already exists
         // -------------------------------------------------
 
         const [existingUsers] = await pool.execute(
 
-            `SELECT id
-             FROM users
-             WHERE email = ?
-             LIMIT 1`,
+            `
+            SELECT id
+            FROM users
+            WHERE email = ?
+            LIMIT 1
+            `,
 
-            [email.trim()]
+            [email]
 
         );
 
@@ -92,23 +102,28 @@ const createUser = async (req, res) => {
         if (existingUsers.length > 0) {
 
             return res.status(409).json({
+
                 success: false,
+
                 message: "Email is already registered."
+
             });
 
         }
 
 
         // -------------------------------------------------
-        // Find role ID
+        // Get role ID
         // -------------------------------------------------
 
         const [roles] = await pool.execute(
 
-            `SELECT id
-             FROM roles
-             WHERE name = ?
-             LIMIT 1`,
+            `
+            SELECT id
+            FROM roles
+            WHERE name = ?
+            LIMIT 1
+            `,
 
             [role]
 
@@ -118,8 +133,11 @@ const createUser = async (req, res) => {
         if (roles.length === 0) {
 
             return res.status(400).json({
+
                 success: false,
-                message: "Selected role does not exist."
+
+                message: "Invalid role."
+
             });
 
         }
@@ -144,23 +162,23 @@ const createUser = async (req, res) => {
 
         const [result] = await pool.execute(
 
-            `INSERT INTO users
-                (
-                    name,
-                    email,
-                    password,
-                    address,
-                    role_id
-                )
-
-             VALUES
-                (?, ?, ?, ?, ?)`,
+            `
+            INSERT INTO users
+            (
+                name,
+                email,
+                password,
+                address,
+                role_id
+            )
+            VALUES (?, ?, ?, ?, ?)
+            `,
 
             [
-                name.trim(),
-                email.trim(),
+                name,
+                email,
                 hashedPassword,
-                address.trim(),
+                address,
                 roleId
             ]
 
@@ -173,11 +191,11 @@ const createUser = async (req, res) => {
 
             message: "User created successfully.",
 
-            user: {
+            data: {
                 id: result.insertId,
-                name: name.trim(),
-                email: email.trim(),
-                address: address.trim(),
+                name,
+                email,
+                address,
                 role
             }
 
@@ -191,8 +209,11 @@ const createUser = async (req, res) => {
         );
 
         return res.status(500).json({
+
             success: false,
+
             message: "Failed to create user."
+
         });
 
     }
@@ -214,16 +235,93 @@ const getUsers = async (req, res) => {
             email,
             address,
             role,
-            sort = "name",
-            order = "asc"
+            sortBy = "name",
+            order = "ASC"
         } = req.query;
 
 
+        const conditions = [];
+
+        const values = [];
+
+
         // -------------------------------------------------
-        // Allowed sorting columns
+        // Name filter
         // -------------------------------------------------
 
-        const allowedSortColumns = {
+        if (name) {
+
+            conditions.push(
+                "u.name LIKE ?"
+            );
+
+            values.push(
+                `%${name}%`
+            );
+
+        }
+
+
+        // -------------------------------------------------
+        // Email filter
+        // -------------------------------------------------
+
+        if (email) {
+
+            conditions.push(
+                "u.email LIKE ?"
+            );
+
+            values.push(
+                `%${email}%`
+            );
+
+        }
+
+
+        // -------------------------------------------------
+        // Address filter
+        // -------------------------------------------------
+
+        if (address) {
+
+            conditions.push(
+                "u.address LIKE ?"
+            );
+
+            values.push(
+                `%${address}%`
+            );
+
+        }
+
+
+        // -------------------------------------------------
+        // Role filter
+        // -------------------------------------------------
+
+        if (role) {
+
+            conditions.push(
+                "r.name = ?"
+            );
+
+            values.push(role);
+
+        }
+
+
+        const whereClause =
+            conditions.length > 0
+                ? `WHERE ${conditions.join(" AND ")}`
+                : "";
+
+
+        // -------------------------------------------------
+        // Whitelist sortable fields
+        // -------------------------------------------------
+
+        const sortFields = {
 
             name: "u.name",
 
@@ -239,21 +337,22 @@ const getUsers = async (req, res) => {
 
 
         const sortColumn =
-            allowedSortColumns[sort] || "u.name";
+            sortFields[sortBy] || "u.name";
 
 
         const sortOrder =
-            order.toLowerCase() === "desc"
+            order === "DESC"
                 ? "DESC"
                 : "ASC";
 
 
         // -------------------------------------------------
-        // Base query
+        // Query
         // -------------------------------------------------
 
-        let query = `
+        const [users] = await pool.execute(
 
+            `
             SELECT
 
                 u.id,
@@ -268,86 +367,15 @@ const getUsers = async (req, res) => {
             INNER JOIN roles r
                 ON u.role_id = r.id
 
-            WHERE 1 = 1
+            ${whereClause}
 
-        `;
+            ORDER BY
+                ${sortColumn}
+                ${sortOrder}
+            `,
 
+            values
 
-        const params = [];
-
-
-        // -------------------------------------------------
-        // Filter by name
-        // -------------------------------------------------
-
-        if (name) {
-
-            query += `
-                AND u.name LIKE ?
-            `;
-
-            params.push(`%${name}%`);
-
-        }
-
-
-        // -------------------------------------------------
-        // Filter by email
-        // -------------------------------------------------
-
-        if (email) {
-
-            query += `
-                AND u.email LIKE ?
-            `;
-
-            params.push(`%${email}%`);
-
-        }
-
-
-        // -------------------------------------------------
-        // Filter by address
-        // -------------------------------------------------
-
-        if (address) {
-
-            query += `
-                AND u.address LIKE ?
-            `;
-
-            params.push(`%${address}%`);
-
-        }
-
-
-        // -------------------------------------------------
-        // Filter by role
-        // -------------------------------------------------
-
-        if (role) {
-
-            query += `
-                AND r.name = ?
-            `;
-
-            params.push(role);
-
-        }
-
-
-        // -------------------------------------------------
-        // Sorting
-        // -------------------------------------------------
-
-        query += `
-            ORDER BY ${sortColumn} ${sortOrder}
-        `;
-
-
-        const [users] = await pool.execute(
-            query,
-            params
         );
 
 
@@ -369,8 +397,11 @@ const getUsers = async (req, res) => {
         );
 
         return res.status(500).json({
+
             success: false,
+
             message: "Failed to fetch users."
+
         });
 
     }
@@ -379,25 +410,20 @@ const getUsers = async (req, res) => {
 
 
 // =====================================================
-// GET USER DETAILS
+// GET USER BY ID
 // =====================================================
 
 const getUserById = async (req, res) => {
 
     try {
 
-        const {
-            id
-        } = req.params;
+        const { id } = req.params;
 
-
-        // -------------------------------------------------
-        // Get user
-        // -------------------------------------------------
 
         const [users] = await pool.execute(
 
-            `SELECT
+            `
+            SELECT
 
                 u.id,
                 u.name,
@@ -407,14 +433,15 @@ const getUserById = async (req, res) => {
                 u.created_at,
                 u.updated_at
 
-             FROM users u
+            FROM users u
 
-             INNER JOIN roles r
+            INNER JOIN roles r
                 ON u.role_id = r.id
 
-             WHERE u.id = ?
+            WHERE u.id = ?
 
-             LIMIT 1`,
+            LIMIT 1
+            `,
 
             [id]
 
@@ -424,8 +451,11 @@ const getUserById = async (req, res) => {
         if (users.length === 0) {
 
             return res.status(404).json({
+
                 success: false,
+
                 message: "User not found."
+
             });
 
         }
@@ -435,14 +465,15 @@ const getUserById = async (req, res) => {
 
 
         // -------------------------------------------------
-        // Store Owner Details
+        // If Store Owner, get their store rating
         // -------------------------------------------------
 
         if (user.role === "STORE_OWNER") {
 
             const [stores] = await pool.execute(
 
-                `SELECT
+                `
+                SELECT
 
                     s.id,
                     s.name,
@@ -452,25 +483,25 @@ const getUserById = async (req, res) => {
                     COALESCE(
                         ROUND(AVG(r.rating), 2),
                         0
-                    ) AS averageRating,
+                    ) AS average_rating,
 
-                    COUNT(r.id) AS totalRatings
+                    COUNT(r.id) AS total_ratings
 
-                 FROM stores s
+                FROM stores s
 
-                 LEFT JOIN ratings r
+                LEFT JOIN ratings r
                     ON s.id = r.store_id
 
-                 WHERE s.owner_id = ?
+                WHERE s.owner_id = ?
 
-                 GROUP BY
+                GROUP BY
                     s.id,
                     s.name,
                     s.email,
-                    s.address,
-                    s.created_at`,
+                    s.address
+                `,
 
-                [user.id]
+                [id]
 
             );
 
@@ -491,13 +522,16 @@ const getUserById = async (req, res) => {
     } catch (error) {
 
         console.error(
-            "Get User Details Error:",
+            "Get User By ID Error:",
             error.message
         );
 
         return res.status(500).json({
+
             success: false,
+
             message: "Failed to fetch user details."
+
         });
 
     }
@@ -522,17 +556,63 @@ const createStore = async (req, res) => {
 
 
         // -------------------------------------------------
+        // Verify Store Owner
+        // -------------------------------------------------
+
+        const [owners] = await pool.execute(
+
+            `
+            SELECT
+
+                u.id,
+                u.name,
+                u.email
+
+            FROM users u
+
+            INNER JOIN roles r
+                ON u.role_id = r.id
+
+            WHERE u.id = ?
+
+            AND r.name = 'STORE_OWNER'
+
+            LIMIT 1
+            `,
+
+            [owner_id]
+
+        );
+
+
+        if (owners.length === 0) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "The selected user is not a valid Store Owner."
+
+            });
+
+        }
+
+
+        // -------------------------------------------------
         // Check duplicate store email
         // -------------------------------------------------
 
         const [existingStores] = await pool.execute(
 
-            `SELECT id
-             FROM stores
-             WHERE email = ?
-             LIMIT 1`,
+            `
+            SELECT id
+            FROM stores
+            WHERE email = ?
+            LIMIT 1
+            `,
 
-            [email.trim()]
+            [email]
 
         );
 
@@ -540,49 +620,13 @@ const createStore = async (req, res) => {
         if (existingStores.length > 0) {
 
             return res.status(409).json({
+
                 success: false,
+
                 message:
                     "A store with this email already exists."
+
             });
-
-        }
-
-
-        // -------------------------------------------------
-        // Validate Store Owner
-        // -------------------------------------------------
-
-        if (owner_id) {
-
-            const [owners] = await pool.execute(
-
-                `SELECT
-                    u.id
-
-                 FROM users u
-
-                 INNER JOIN roles r
-                    ON u.role_id = r.id
-
-                 WHERE u.id = ?
-                 AND r.name = 'STORE_OWNER'
-
-                 LIMIT 1`,
-
-                [owner_id]
-
-            );
-
-
-            if (owners.length === 0) {
-
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        "owner_id must belong to a Store Owner."
-                });
-
-            }
 
         }
 
@@ -593,22 +637,22 @@ const createStore = async (req, res) => {
 
         const [result] = await pool.execute(
 
-            `INSERT INTO stores
-                (
-                    name,
-                    email,
-                    address,
-                    owner_id
-                )
-
-             VALUES
-                (?, ?, ?, ?)`,
+            `
+            INSERT INTO stores
+            (
+                name,
+                email,
+                address,
+                owner_id
+            )
+            VALUES (?, ?, ?, ?)
+            `,
 
             [
-                name.trim(),
-                email.trim(),
-                address.trim(),
-                owner_id || null
+                name,
+                email,
+                address,
+                owner_id
             ]
 
         );
@@ -620,12 +664,12 @@ const createStore = async (req, res) => {
 
             message: "Store created successfully.",
 
-            store: {
+            data: {
                 id: result.insertId,
-                name: name.trim(),
-                email: email.trim(),
-                address: address.trim(),
-                owner_id: owner_id || null
+                name,
+                email,
+                address,
+                owner_id
             }
 
         });
@@ -638,8 +682,11 @@ const createStore = async (req, res) => {
         );
 
         return res.status(500).json({
+
             success: false,
+
             message: "Failed to create store."
+
         });
 
     }
@@ -660,16 +707,78 @@ const getStores = async (req, res) => {
             name,
             email,
             address,
-            sort = "name",
-            order = "asc"
+            sortBy = "name",
+            order = "ASC"
         } = req.query;
 
 
+        const conditions = [];
+
+        const values = [];
+
+
         // -------------------------------------------------
-        // Allowed sorting columns
+        // Name
         // -------------------------------------------------
 
-        const allowedSortColumns = {
+        if (name) {
+
+            conditions.push(
+                "s.name LIKE ?"
+            );
+
+            values.push(
+                `%${name}%`
+            );
+
+        }
+
+
+        // -------------------------------------------------
+        // Email
+        // -------------------------------------------------
+
+        if (email) {
+
+            conditions.push(
+                "s.email LIKE ?"
+            );
+
+            values.push(
+                `%${email}%`
+            );
+
+        }
+
+
+        // -------------------------------------------------
+        // Address
+        // -------------------------------------------------
+
+        if (address) {
+
+            conditions.push(
+                "s.address LIKE ?"
+            );
+
+            values.push(
+                `%${address}%`
+            );
+
+        }
+
+
+        const whereClause =
+            conditions.length > 0
+                ? `WHERE ${conditions.join(" AND ")}`
+                : "";
+
+
+        // -------------------------------------------------
+        // Sort whitelist
+        // -------------------------------------------------
+
+        const sortFields = {
 
             name: "s.name",
 
@@ -677,29 +786,31 @@ const getStores = async (req, res) => {
 
             address: "s.address",
 
-            rating: "average_rating",
+            created_at: "s.created_at",
 
-            created_at: "s.created_at"
+            rating: "average_rating"
 
         };
 
 
         const sortColumn =
-            allowedSortColumns[sort] || "s.name";
+            sortFields[sortBy] ||
+            "s.name";
 
 
         const sortOrder =
-            order.toLowerCase() === "desc"
+            order === "DESC"
                 ? "DESC"
                 : "ASC";
 
 
         // -------------------------------------------------
-        // Base query
+        // Get stores
         // -------------------------------------------------
 
-        let query = `
+        const [stores] = await pool.execute(
 
+            `
             SELECT
 
                 s.id,
@@ -720,64 +831,7 @@ const getStores = async (req, res) => {
             LEFT JOIN ratings r
                 ON s.id = r.store_id
 
-            WHERE 1 = 1
-
-        `;
-
-
-        const params = [];
-
-
-        // -------------------------------------------------
-        // Filter by name
-        // -------------------------------------------------
-
-        if (name) {
-
-            query += `
-                AND s.name LIKE ?
-            `;
-
-            params.push(`%${name}%`);
-
-        }
-
-
-        // -------------------------------------------------
-        // Filter by email
-        // -------------------------------------------------
-
-        if (email) {
-
-            query += `
-                AND s.email LIKE ?
-            `;
-
-            params.push(`%${email}%`);
-
-        }
-
-
-        // -------------------------------------------------
-        // Filter by address
-        // -------------------------------------------------
-
-        if (address) {
-
-            query += `
-                AND s.address LIKE ?
-            `;
-
-            params.push(`%${address}%`);
-
-        }
-
-
-        // -------------------------------------------------
-        // Group results
-        // -------------------------------------------------
-
-        query += `
+            ${whereClause}
 
             GROUP BY
 
@@ -785,24 +839,15 @@ const getStores = async (req, res) => {
                 s.name,
                 s.email,
                 s.address,
-                s.owner_id,
-                s.created_at
+                s.owner_id
 
-        `;
+            ORDER BY
+                ${sortColumn}
+                ${sortOrder}
+            `,
 
+            values
 
-        // -------------------------------------------------
-        // Sorting
-        // -------------------------------------------------
-
-        query += `
-            ORDER BY ${sortColumn} ${sortOrder}
-        `;
-
-
-        const [stores] = await pool.execute(
-            query,
-            params
         );
 
 
@@ -824,18 +869,17 @@ const getStores = async (req, res) => {
         );
 
         return res.status(500).json({
+
             success: false,
+
             message: "Failed to fetch stores."
+
         });
 
     }
 
 };
 
-
-// =====================================================
-// EXPORTS
-// =====================================================
 
 module.exports = {
 
@@ -852,4 +896,3 @@ module.exports = {
     getStores
 
 };
-
