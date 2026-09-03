@@ -15,7 +15,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRoute from "./routes/RoleRoute";
-
+import AdminStores from "./pages/admin/AdminStores";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
 const Placeholder = ({ title }) => {
@@ -129,16 +129,14 @@ const App = () => {
                   ADMIN STORE MANAGEMENT
               ================================= */}
 
-              <Route
-                path="/admin/stores"
-                element={
-                  <DashboardLayout>
-                    <Placeholder
-                      title="Store Management"
-                    />
-                  </DashboardLayout>
-                }
-              />
+            <Route
+  path="/admin/stores"
+  element={
+    <DashboardLayout>
+      <AdminStores />
+    </DashboardLayout>
+  }
+/>
 
               {/* =================================
                   ADMIN USER MANAGEMENT
