@@ -1,99 +1,151 @@
-import { motion } from "framer-motion";
-import { Store, ShieldCheck, Star } from "lucide-react";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
 
-const App = () => {
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
-      }}
-    >
-      <motion.div
-        className="fade-in"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45 }}
-        style={{
-          width: "100%",
-          maxWidth: "700px",
-          padding: "48px",
-          textAlign: "center",
-          background: "var(--bg-card)",
-          border: "1px solid var(--border-color)",
-          borderRadius: "var(--radius-lg)",
-          boxShadow: "var(--shadow-card)",
-          backdropFilter: "blur(20px)",
-        }}
-      >
-        <Store
-          size={54}
-          strokeWidth={1.5}
-          style={{
-            color: "var(--accent-primary)",
-            margin: "0 auto 20px",
-          }}
-        />
+import { AuthProvider } from "./context/AuthContext";
 
-        <h1
-          style={{
-            fontSize: "clamp(28px, 5vw, 44px)",
-            marginBottom: "12px",
-          }}
-        >
-          Store Rating Platform
-        </h1>
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import Unauthorized from "./pages/Unauthorized";
 
-        <p
-          style={{
-            color: "var(--text-secondary)",
-            fontSize: "17px",
-            marginBottom: "32px",
-          }}
-        >
-          Rate stores, discover great businesses, and manage your
-          store experience.
-        </p>
+import ProtectedRoute from "./routes/ProtectedRoute";
+import RoleRoute from "./routes/RoleRoute";
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "24px",
-            flexWrap: "wrap",
-          }}
-        >
-          <Feature icon={<Star size={18} />} text="Rate Stores" />
-          <Feature
-            icon={<ShieldCheck size={18} />}
-            text="Secure Authentication"
-          />
-          <Feature icon={<Store size={18} />} text="Store Management" />
-        </div>
-      </motion.div>
-    </main>
-  );
-};
-
-const Feature = ({ icon, text }) => {
+const Placeholder = ({ title }) => {
   return (
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        color: "var(--text-secondary)",
+        padding: "40px",
       }}
     >
-      <span style={{ color: "var(--accent-primary)" }}>
-        {icon}
-      </span>
-
-      <span>{text}</span>
+      <h1>{title}</h1>
+      <p>
+        This module will be implemented next.
+      </p>
     </div>
+  );
+};
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+
+          {/* =========================
+              PUBLIC ROUTES
+          ========================= */}
+
+          <Route
+            path="/"
+            element={
+              <Navigate
+                to="/login"
+                replace
+              />
+            }
+          />
+
+          <Route
+            path="/login"
+            element={<Login />}
+          />
+
+          <Route
+            path="/register"
+            element={<Register />}
+          />
+
+          <Route
+            path="/unauthorized"
+            element={<Unauthorized />}
+          />
+
+          {/* =========================
+              PROTECTED ROUTES
+          ========================= */}
+
+          <Route element={<ProtectedRoute />}>
+
+            {/* ADMIN */}
+
+            <Route
+              element={
+                <RoleRoute
+                  allowedRoles={["ADMIN"]}
+                />
+              }
+            >
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <Placeholder
+                    title="Admin Dashboard"
+                  />
+                }
+              />
+            </Route>
+
+            {/* NORMAL USER */}
+
+            <Route
+              element={
+                <RoleRoute
+                  allowedRoles={["USER"]}
+                />
+              }
+            >
+              <Route
+                path="/stores"
+                element={
+                  <Placeholder
+                    title="Store Listing"
+                  />
+                }
+              />
+            </Route>
+
+            {/* STORE OWNER */}
+
+            <Route
+              element={
+                <RoleRoute
+                  allowedRoles={["STORE_OWNER"]}
+                />
+              }
+            >
+              <Route
+                path="/store-owner/dashboard"
+                element={
+                  <Placeholder
+                    title="Store Owner Dashboard"
+                  />
+                }
+              />
+            </Route>
+
+          </Route>
+
+          {/* =========================
+              FALLBACK
+          ========================= */}
+
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to="/login"
+                replace
+              />
+            }
+          />
+
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 
