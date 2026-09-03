@@ -5,7 +5,7 @@ Express and MySQL.
 
 ## Live Demo
 Frontend:
-https://YOUR-USERNAME.github.io/store-rating-platform/
+https://deeyagunai9323.github.io/store-rating-platform
 
 ## Demo Accounts
 ### Admin
