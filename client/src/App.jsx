@@ -14,17 +14,45 @@ import Unauthorized from "./pages/Unauthorized";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRoute from "./routes/RoleRoute";
 
+import DashboardLayout from "./components/layout/DashboardLayout";
+
 const Placeholder = ({ title }) => {
   return (
-    <div
-      style={{
-        padding: "40px",
-      }}
-    >
-      <h1>{title}</h1>
-      <p>
-        This module will be implemented next.
-      </p>
+    <div>
+      <div
+        style={{
+          marginBottom: "30px",
+        }}
+      >
+        <p
+          style={{
+            color: "#5eead4",
+            fontSize: "12px",
+            fontWeight: "700",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+          }}
+        >
+          StoreRate
+        </p>
+
+        <h1
+          style={{
+            margin: "8px 0",
+            fontSize: "30px",
+          }}
+        >
+          {title}
+        </h1>
+
+        <p
+          style={{
+            color: "#64748b",
+          }}
+        >
+          This module will be implemented next.
+        </p>
+      </div>
     </div>
   );
 };
@@ -32,12 +60,14 @@ const Placeholder = ({ title }) => {
 const App = () => {
   return (
     <BrowserRouter>
+
       <AuthProvider>
+
         <Routes>
 
-          {/* =========================
-              PUBLIC ROUTES
-          ========================= */}
+          {/* =========================================
+              PUBLIC
+          ========================================= */}
 
           <Route
             path="/"
@@ -64,13 +94,15 @@ const App = () => {
             element={<Unauthorized />}
           />
 
-          {/* =========================
-              PROTECTED ROUTES
-          ========================= */}
+          {/* =========================================
+              PROTECTED
+          ========================================= */}
 
           <Route element={<ProtectedRoute />}>
 
-            {/* ADMIN */}
+            {/* =====================================
+                ADMIN
+            ===================================== */}
 
             <Route
               element={
@@ -79,17 +111,45 @@ const App = () => {
                 />
               }
             >
+
               <Route
                 path="/admin/dashboard"
                 element={
-                  <Placeholder
-                    title="Admin Dashboard"
-                  />
+                  <DashboardLayout>
+                    <Placeholder
+                      title="Admin Dashboard"
+                    />
+                  </DashboardLayout>
                 }
               />
+
+              <Route
+                path="/admin/stores"
+                element={
+                  <DashboardLayout>
+                    <Placeholder
+                      title="Store Management"
+                    />
+                  </DashboardLayout>
+                }
+              />
+
+              <Route
+                path="/admin/users"
+                element={
+                  <DashboardLayout>
+                    <Placeholder
+                      title="User Management"
+                    />
+                  </DashboardLayout>
+                }
+              />
+
             </Route>
 
-            {/* NORMAL USER */}
+            {/* =====================================
+                NORMAL USER
+            ===================================== */}
 
             <Route
               element={
@@ -98,17 +158,45 @@ const App = () => {
                 />
               }
             >
+
               <Route
                 path="/stores"
                 element={
-                  <Placeholder
-                    title="Store Listing"
-                  />
+                  <DashboardLayout>
+                    <Placeholder
+                      title="Stores"
+                    />
+                  </DashboardLayout>
                 }
               />
+
+              <Route
+                path="/my-ratings"
+                element={
+                  <DashboardLayout>
+                    <Placeholder
+                      title="My Ratings"
+                    />
+                  </DashboardLayout>
+                }
+              />
+
+              <Route
+                path="/profile"
+                element={
+                  <DashboardLayout>
+                    <Placeholder
+                      title="Profile"
+                    />
+                  </DashboardLayout>
+                }
+              />
+
             </Route>
 
-            {/* STORE OWNER */}
+            {/* =====================================
+                STORE OWNER
+            ===================================== */}
 
             <Route
               element={
@@ -117,21 +205,47 @@ const App = () => {
                 />
               }
             >
+
               <Route
                 path="/store-owner/dashboard"
                 element={
-                  <Placeholder
-                    title="Store Owner Dashboard"
-                  />
+                  <DashboardLayout>
+                    <Placeholder
+                      title="Store Owner Dashboard"
+                    />
+                  </DashboardLayout>
                 }
               />
+
+              <Route
+                path="/store-owner/ratings"
+                element={
+                  <DashboardLayout>
+                    <Placeholder
+                      title="Ratings"
+                    />
+                  </DashboardLayout>
+                }
+              />
+
+              <Route
+                path="/store-owner/profile"
+                element={
+                  <DashboardLayout>
+                    <Placeholder
+                      title="Profile"
+                    />
+                  </DashboardLayout>
+                }
+              />
+
             </Route>
 
           </Route>
 
-          {/* =========================
+          {/* =========================================
               FALLBACK
-          ========================= */}
+          ========================================= */}
 
           <Route
             path="*"
@@ -144,7 +258,9 @@ const App = () => {
           />
 
         </Routes>
+
       </AuthProvider>
+
     </BrowserRouter>
   );
 };
