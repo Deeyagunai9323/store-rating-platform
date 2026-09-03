@@ -23,13 +23,16 @@ import {
   getAdminUserById,
 } from "../../services/admin.service";
 
-import "./AdminUsers.css";
+import LoadingSkeleton from "../../components/admin/LoadingSkeleton";
+import EmptyState from "../../components/admin/EmptyState";
+import ErrorAlert from "../../components/admin/ErrorAlert";
+import Toast from "../../components/admin/Toast";
+import ConfirmDialog from "../../components/admin/ConfirmDialog";
 
+import "./AdminUsers.css";
 
 // =====================================================
 // ROLE OPTIONS
-// IMPORTANT:
-// Backend expects "role", NOT "role_id"
 // =====================================================
 
 const ROLE_OPTIONS = [
@@ -50,7 +53,6 @@ const ROLE_OPTIONS = [
   },
 ];
 
-
 // =====================================================
 // EMPTY FORM
 // =====================================================
@@ -63,9 +65,8 @@ const EMPTY_FORM = {
   role: "USER",
 };
 
-
 // =====================================================
-// SEARCH TYPES
+// SEARCH OPTIONS
 // =====================================================
 
 const SEARCH_OPTIONS = [
@@ -83,13 +84,11 @@ const SEARCH_OPTIONS = [
   },
 ];
 
-
 // =====================================================
 // COMPONENT
 // =====================================================
 
 const AdminUsers = () => {
-
   const [users, setUsers] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -118,21 +117,22 @@ const AdminUsers = () => {
 
   const [creating, setCreating] = useState(false);
 
-  const [formData, setFormData] = useState(
-    EMPTY_FORM
-  );
+  // Confirmation state
+  const [showConfirm, setShowConfirm] = useState(false);
 
+  const [deleting, setDeleting] = useState(false);
+
+  const [formData, setFormData] = useState({
+    ...EMPTY_FORM,
+  });
 
   // =====================================================
   // LOAD USERS
   // =====================================================
 
   const loadUsers = async () => {
-
     try {
-
       setLoading(true);
-
       setError("");
 
       const params = {
@@ -140,49 +140,27 @@ const AdminUsers = () => {
         order: sortOrder,
       };
 
-
-      // -----------------------------------------------
       // SEARCH
-      // -----------------------------------------------
-
       if (search.trim()) {
-
-        params[searchField] =
-          search.trim();
-
+        params[searchField] = search.trim();
       }
 
-
-      // -----------------------------------------------
       // ROLE FILTER
-      // -----------------------------------------------
-
       if (roleFilter) {
-
         params.role = roleFilter;
-
       }
-
 
       console.log(
         "Admin users request params:",
         params
       );
 
-
-      const response =
-        await getAdminUsers(params);
-
+      const response = await getAdminUsers(params);
 
       console.log(
         "Admin users response:",
         response
       );
-
-
-      // -----------------------------------------------
-      // HANDLE POSSIBLE RESPONSE STRUCTURES
-      // -----------------------------------------------
 
       const userList =
         response?.data?.users ||
@@ -190,29 +168,23 @@ const AdminUsers = () => {
         response?.users ||
         [];
 
-
       setUsers(
         Array.isArray(userList)
           ? userList
           : []
       );
-
     } catch (err) {
-
       console.error(
         "Failed to load admin users:",
         err
       );
-
 
       const backendMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||
         err.response?.data?.errors;
 
-
       if (Array.isArray(backendMessage)) {
-
         setError(
           backendMessage
             .map(
@@ -223,165 +195,117 @@ const AdminUsers = () => {
             )
             .join(", ")
         );
-
       } else {
-
         setError(
           backendMessage ||
-          "Unable to load users."
+            "Unable to load users."
         );
-
       }
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
-
   // =====================================================
-  // INITIAL LOAD + FILTER/SORT CHANGE
+  // INITIAL LOAD
   // =====================================================
 
   useEffect(() => {
-
     loadUsers();
-
   }, [
     roleFilter,
     sortBy,
     sortOrder,
   ]);
 
-
   // =====================================================
   // SEARCH
   // =====================================================
 
   const handleSearch = (event) => {
-
     event.preventDefault();
 
     loadUsers();
-
   };
-
 
   // =====================================================
   // CLEAR SEARCH
   // =====================================================
 
   const clearSearch = () => {
-
     setSearch("");
 
     setTimeout(() => {
       loadUsers();
     }, 0);
-
   };
-
 
   // =====================================================
   // SORT
   // =====================================================
 
   const handleSort = (field) => {
-
     if (sortBy === field) {
-
       setSortOrder(
         sortOrder === "ASC"
           ? "DESC"
           : "ASC"
       );
-
     } else {
-
       setSortBy(field);
-
       setSortOrder("ASC");
-
     }
-
   };
-
 
   // =====================================================
   // FORM CHANGE
   // =====================================================
 
   const handleFormChange = (event) => {
-
     const {
       name,
       value,
     } = event.target;
-
 
     setFormData((previous) => ({
       ...previous,
       [name]: value,
     }));
 
-
-    // Clear previous error when user starts typing
     if (error) {
       setError("");
     }
-
   };
-
 
   // =====================================================
   // ROLE CHANGE
   // =====================================================
 
   const handleRoleChange = (event) => {
-
     setFormData((previous) => ({
       ...previous,
       role: event.target.value,
     }));
 
+    if (error) {
+      setError("");
+    }
   };
-
 
   // =====================================================
   // CREATE USER
   // =====================================================
 
   const handleCreateUser = async (event) => {
-
     event.preventDefault();
 
     setCreating(true);
 
     setError("");
-
     setSuccess("");
 
-
     try {
-
-      // IMPORTANT:
-      // Backend expects:
-      //
-      // {
-      //   name,
-      //   email,
-      //   password,
-      //   address,
-      //   role
-      // }
-      //
-      // NOT role_id
-
       const payload = {
-
         name: formData.name.trim(),
 
         email: formData.email.trim(),
@@ -391,52 +315,38 @@ const AdminUsers = () => {
         address: formData.address.trim(),
 
         role: formData.role,
-
       };
-
 
       console.log(
         "Create user payload:",
         payload
       );
 
-
       await createAdminUser(payload);
-
 
       setSuccess(
         "User created successfully."
       );
 
-
       setFormData({
         ...EMPTY_FORM,
       });
 
-
       setShowModal(false);
 
-
-      // Refresh user list
       await loadUsers();
-
-
     } catch (err) {
-
       console.error(
         "Create user error:",
         err
       );
-
 
       const backendMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||
         err.response?.data?.errors;
 
-
       if (Array.isArray(backendMessage)) {
-
         setError(
           backendMessage
             .map(
@@ -447,154 +357,158 @@ const AdminUsers = () => {
             )
             .join(", ")
         );
-
       } else {
-
         setError(
           backendMessage ||
-          "Unable to create user."
+            "Unable to create user."
         );
-
       }
-
     } finally {
-
       setCreating(false);
-
     }
-
   };
-
 
   // =====================================================
   // VIEW USER DETAILS
   // =====================================================
 
   const handleViewDetails = async (userId) => {
-
     try {
-
       setDetailsLoading(true);
 
       setShowDetails(true);
 
       setSelectedUser(null);
 
-
       const response =
         await getAdminUserById(userId);
-
 
       console.log(
         "User details response:",
         response
       );
 
-
       const user =
         response?.data?.user ||
         response?.data ||
         response?.user;
 
-
       setSelectedUser(user);
-
     } catch (err) {
-
       console.error(
         "User details error:",
         err
       );
 
-
       setError(
         err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Unable to load user details."
+          err.response?.data?.error ||
+          "Unable to load user details."
       );
 
-
       setShowDetails(false);
-
     } finally {
-
       setDetailsLoading(false);
-
     }
-
   };
-
 
   // =====================================================
   // ROLE NAME
   // =====================================================
 
   const getRoleName = (user) => {
-
     return (
       user?.role ||
       user?.role_name ||
       user?.roleName ||
       "UNKNOWN"
     );
-
   };
-
 
   // =====================================================
   // ROLE BADGE
   // =====================================================
 
   const RoleBadge = ({ user }) => {
-
     const role = getRoleName(user);
 
-
     return (
-
       <span
         className={`role-badge role-${role
           .toLowerCase()
-          .replace("_", "-")}`}
+          .replaceAll("_", "-")}`}
       >
-
-        {role.replace("_", " ")}
-
+        {role.replaceAll("_", " ")}
       </span>
-
     );
-
   };
-
 
   // =====================================================
   // CLOSE CREATE MODAL
   // =====================================================
 
   const closeCreateModal = () => {
-
     if (creating) {
       return;
     }
-
 
     setShowModal(false);
 
     setFormData({
       ...EMPTY_FORM,
     });
-
   };
 
+  // =====================================================
+  // CLOSE DETAILS
+  // =====================================================
+
+  const closeDetails = () => {
+    setShowDetails(false);
+
+    setSelectedUser(null);
+  };
+
+  // =====================================================
+  // CONFIRMATION
+  // =====================================================
+  // Delete functionality is not currently connected
+  // to your backend. Keep this ready for the next
+  // module when delete/deactivate API is implemented.
+
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+
+      // Add delete API here when backend endpoint
+      // is available.
+
+      setSuccess(
+        "Delete functionality is not connected yet."
+      );
+
+      setShowConfirm(false);
+    } catch (err) {
+      console.error(
+        "Delete user error:",
+        err
+      );
+
+      setError(
+        err.response?.data?.message ||
+          "Unable to delete user."
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // =====================================================
   // RETURN
   // =====================================================
 
   return (
-
     <div className="admin-users-page">
-
 
       {/* =================================================
           PAGE HEADER
@@ -619,12 +533,10 @@ const AdminUsers = () => {
 
         </div>
 
-
         <button
           className="primary-button"
           type="button"
           onClick={() => {
-
             setFormData({
               ...EMPTY_FORM,
             });
@@ -634,57 +546,38 @@ const AdminUsers = () => {
             setSuccess("");
 
             setShowModal(true);
-
           }}
+          aria-label="Add new user"
         >
-
           <Plus size={18} />
 
           Add User
-
         </button>
 
       </div>
 
-
-
       {/* =================================================
-          SUCCESS
-      ================================================= */}
-
-      {success && (
-
-        <div
-          className="success-alert"
-          role="status"
-        >
-
-          {success}
-
-        </div>
-
-      )}
-
-
-
-      {/* =================================================
-          ERROR
+          ERROR ALERT
       ================================================= */}
 
       {error && (
-
-        <div
-          className="error-alert"
-          role="alert"
-        >
-
-          {error}
-
-        </div>
-
+        <ErrorAlert
+          message={error}
+          onClose={() => setError("")}
+        />
       )}
 
+      {/* =================================================
+          SUCCESS TOAST
+      ================================================= */}
 
+      {success && (
+        <Toast
+          type="success"
+          message={success}
+          onClose={() => setSuccess("")}
+        />
+      )}
 
       {/* =================================================
           SEARCH / FILTER TOOLBAR
@@ -692,16 +585,12 @@ const AdminUsers = () => {
 
       <div className="users-toolbar">
 
-
-        {/* SEARCH FORM */}
-
         <form
           className="search-box"
           onSubmit={handleSearch}
         >
 
           <Search size={18} />
-
 
           <select
             value={searchField}
@@ -716,21 +605,16 @@ const AdminUsers = () => {
 
             {SEARCH_OPTIONS.map(
               (option) => (
-
                 <option
                   key={option.value}
                   value={option.value}
                 >
-
                   {option.label}
-
                 </option>
-
               )
             )}
 
           </select>
-
 
           <input
             type="text"
@@ -750,35 +634,26 @@ const AdminUsers = () => {
             aria-label="Search users"
           />
 
-
           {search && (
-
             <button
               type="button"
               className="clear-search"
               onClick={clearSearch}
               title="Clear search"
+              aria-label="Clear search"
             >
-
               <X size={16} />
-
             </button>
-
           )}
-
 
           <button
             type="submit"
             className="search-button"
           >
-
             Search
-
           </button>
 
         </form>
-
-
 
         {/* ROLE FILTER */}
 
@@ -811,8 +686,6 @@ const AdminUsers = () => {
 
         </select>
 
-
-
         {/* REFRESH */}
 
         <button
@@ -821,15 +694,19 @@ const AdminUsers = () => {
           onClick={loadUsers}
           title="Refresh users"
           aria-label="Refresh users"
+          disabled={loading}
         >
 
-          <RefreshCw size={18} />
+          <RefreshCw
+            size={18}
+            className={
+              loading ? "spin" : ""
+            }
+          />
 
         </button>
 
       </div>
-
-
 
       {/* =================================================
           USERS TABLE
@@ -837,38 +714,19 @@ const AdminUsers = () => {
 
       <div className="users-card">
 
-
         {loading ? (
 
-          <div className="table-loading">
-
-            <LoaderCircle
-              size={30}
-              className="spin"
-            />
-
-            <p>
-              Loading users...
-            </p>
-
-          </div>
+          <LoadingSkeleton
+            rows={6}
+            columns={5}
+          />
 
         ) : users.length === 0 ? (
 
-          <div className="empty-state">
-
-            <Users size={40} />
-
-            <h3>
-              No users found
-            </h3>
-
-            <p>
-              Try changing your search
-              or filters.
-            </p>
-
-          </div>
+          <EmptyState
+            title="No users found"
+            message="Try changing your search or filters."
+          />
 
         ) : (
 
@@ -880,7 +738,7 @@ const AdminUsers = () => {
 
                 <tr>
 
-                  <th>
+                  <th scope="col">
 
                     <button
                       type="button"
@@ -911,8 +769,7 @@ const AdminUsers = () => {
 
                   </th>
 
-
-                  <th>
+                  <th scope="col">
 
                     <button
                       type="button"
@@ -943,25 +800,21 @@ const AdminUsers = () => {
 
                   </th>
 
-
-                  <th>
+                  <th scope="col">
                     Address
                   </th>
 
-
-                  <th>
+                  <th scope="col">
                     Role
                   </th>
 
-
-                  <th>
+                  <th scope="col">
                     Action
                   </th>
 
                 </tr>
 
               </thead>
-
 
               <tbody>
 
@@ -971,19 +824,19 @@ const AdminUsers = () => {
                     key={user.id}
                   >
 
-
                     {/* NAME */}
 
                     <td>
 
                       <div className="user-name-cell">
 
-                        <div className="user-avatar">
-
+                        <div
+                          className="user-avatar"
+                          aria-hidden="true"
+                        >
                           {user.name
                             ?.charAt(0)
                             ?.toUpperCase()}
-
                         </div>
 
                         <span>
@@ -994,8 +847,6 @@ const AdminUsers = () => {
 
                     </td>
 
-
-
                     {/* EMAIL */}
 
                     <td>
@@ -1004,13 +855,13 @@ const AdminUsers = () => {
 
                         <Mail size={14} />
 
-                        {user.email}
+                        <span>
+                          {user.email}
+                        </span>
 
                       </div>
 
                     </td>
-
-
 
                     {/* ADDRESS */}
 
@@ -1021,17 +872,13 @@ const AdminUsers = () => {
                         <MapPin size={14} />
 
                         <span className="address-cell">
-
                           {user.address ||
                             "—"}
-
                         </span>
 
                       </div>
 
                     </td>
-
-
 
                     {/* ROLE */}
 
@@ -1042,8 +889,6 @@ const AdminUsers = () => {
                       />
 
                     </td>
-
-
 
                     {/* ACTION */}
 
@@ -1058,7 +903,9 @@ const AdminUsers = () => {
                           )
                         }
                         title="View details"
-                        aria-label={`View details for ${user.name}`}
+                        aria-label={`View details for ${
+                          user.name
+                        }`}
                       >
 
                         <Eye size={17} />
@@ -1066,7 +913,6 @@ const AdminUsers = () => {
                       </button>
 
                     </td>
-
 
                   </tr>
 
@@ -1082,8 +928,6 @@ const AdminUsers = () => {
 
       </div>
 
-
-
       {/* =================================================
           CREATE USER MODAL
       ================================================= */}
@@ -1093,6 +937,7 @@ const AdminUsers = () => {
         <div
           className="modal-overlay"
           onMouseDown={closeCreateModal}
+          role="presentation"
         >
 
           <div
@@ -1100,8 +945,10 @@ const AdminUsers = () => {
             onMouseDown={(event) =>
               event.stopPropagation()
             }
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-user-title"
           >
-
 
             {/* MODAL HEADER */}
 
@@ -1113,19 +960,18 @@ const AdminUsers = () => {
                   USER MANAGEMENT
                 </span>
 
-                <h2>
+                <h2 id="add-user-title">
                   Add User
                 </h2>
 
               </div>
-
 
               <button
                 type="button"
                 className="modal-close"
                 onClick={closeCreateModal}
                 disabled={creating}
-                aria-label="Close"
+                aria-label="Close add user dialog"
               >
 
                 <X size={20} />
@@ -1134,15 +980,12 @@ const AdminUsers = () => {
 
             </div>
 
-
-
-            {/* CREATE FORM */}
+            {/* FORM */}
 
             <form
               onSubmit={handleCreateUser}
               className="admin-user-form"
             >
-
 
               {/* NAME */}
 
@@ -1170,8 +1013,6 @@ const AdminUsers = () => {
 
               </div>
 
-
-
               {/* EMAIL */}
 
               <div className="form-field">
@@ -1193,8 +1034,6 @@ const AdminUsers = () => {
 
               </div>
 
-
-
               {/* PASSWORD */}
 
               <div className="form-field">
@@ -1214,6 +1053,7 @@ const AdminUsers = () => {
                   required
                   disabled={creating}
                   placeholder="Enter password"
+                  autoComplete="new-password"
                 />
 
                 <small>
@@ -1222,8 +1062,6 @@ const AdminUsers = () => {
                 </small>
 
               </div>
-
-
 
               {/* ADDRESS */}
 
@@ -1251,8 +1089,6 @@ const AdminUsers = () => {
 
               </div>
 
-
-
               {/* ROLE */}
 
               <div className="form-field">
@@ -1271,24 +1107,18 @@ const AdminUsers = () => {
 
                   {ROLE_OPTIONS.map(
                     (role) => (
-
                       <option
                         key={role.value}
                         value={role.value}
                       >
-
                         {role.label}
-
                       </option>
-
                     )
                   )}
 
                 </select>
 
               </div>
-
-
 
               {/* SUBMIT */}
 
@@ -1301,24 +1131,20 @@ const AdminUsers = () => {
                 {creating ? (
 
                   <>
-
                     <LoaderCircle
                       size={18}
                       className="spin"
                     />
 
                     Creating...
-
                   </>
 
                 ) : (
 
                   <>
-
                     <Plus size={18} />
 
                     Create User
-
                   </>
 
                 )}
@@ -1333,8 +1159,6 @@ const AdminUsers = () => {
 
       )}
 
-
-
       {/* =================================================
           USER DETAILS MODAL
       ================================================= */}
@@ -1343,9 +1167,8 @@ const AdminUsers = () => {
 
         <div
           className="modal-overlay"
-          onMouseDown={() =>
-            setShowDetails(false)
-          }
+          onMouseDown={closeDetails}
+          role="presentation"
         >
 
           <div
@@ -1353,8 +1176,10 @@ const AdminUsers = () => {
             onMouseDown={(event) =>
               event.stopPropagation()
             }
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="user-details-title"
           >
-
 
             {/* HEADER */}
 
@@ -1366,20 +1191,17 @@ const AdminUsers = () => {
                   USER DETAILS
                 </span>
 
-                <h2>
+                <h2 id="user-details-title">
                   Account Information
                 </h2>
 
               </div>
 
-
               <button
                 type="button"
                 className="modal-close"
-                onClick={() =>
-                  setShowDetails(false)
-                }
-                aria-label="Close details"
+                onClick={closeDetails}
+                aria-label="Close user details"
               >
 
                 <X size={20} />
@@ -1388,29 +1210,18 @@ const AdminUsers = () => {
 
             </div>
 
-
-
-            {/* LOADING */}
+            {/* DETAILS LOADING */}
 
             {detailsLoading ? (
 
-              <div className="table-loading">
-
-                <LoaderCircle
-                  size={30}
-                  className="spin"
-                />
-
-                <p>
-                  Loading details...
-                </p>
-
-              </div>
+              <LoadingSkeleton
+                rows={4}
+                columns={2}
+              />
 
             ) : selectedUser ? (
 
               <div className="details-content">
-
 
                 {/* AVATAR */}
 
@@ -1422,13 +1233,11 @@ const AdminUsers = () => {
 
                 </div>
 
-
                 {/* NAME */}
 
                 <h3>
                   {selectedUser.name}
                 </h3>
-
 
                 {/* ROLE */}
 
@@ -1436,12 +1245,9 @@ const AdminUsers = () => {
                   user={selectedUser}
                 />
 
-
-
                 {/* DETAILS */}
 
                 <div className="details-grid">
-
 
                   <div>
 
@@ -1456,8 +1262,6 @@ const AdminUsers = () => {
 
                   </div>
 
-
-
                   <div>
 
                     <span>
@@ -1471,8 +1275,6 @@ const AdminUsers = () => {
 
                   </div>
 
-
-
                   <div>
 
                     <span>
@@ -1482,15 +1284,13 @@ const AdminUsers = () => {
                     <strong>
                       {getRoleName(
                         selectedUser
-                      ).replace(
+                      ).replaceAll(
                         "_",
                         " "
                       )}
                     </strong>
 
                   </div>
-
-
 
                   <div>
 
@@ -1503,8 +1303,6 @@ const AdminUsers = () => {
                     </strong>
 
                   </div>
-
-
 
                   {selectedUser.created_at && (
 
@@ -1525,8 +1323,6 @@ const AdminUsers = () => {
                   )}
 
                 </div>
-
-
 
                 {/* STORE OWNER RATING */}
 
@@ -1560,7 +1356,14 @@ const AdminUsers = () => {
 
               </div>
 
-            ) : null}
+            ) : (
+
+              <EmptyState
+                title="User details unavailable"
+                message="Unable to display the selected user's information."
+              />
+
+            )}
 
           </div>
 
@@ -1568,11 +1371,25 @@ const AdminUsers = () => {
 
       )}
 
+      {/* =================================================
+          CONFIRMATION DIALOG
+      ================================================= */}
+
+      <ConfirmDialog
+        open={showConfirm}
+        title="Delete user?"
+        message="This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDelete}
+        onCancel={() =>
+          setShowConfirm(false)
+        }
+        loading={deleting}
+      />
+
     </div>
-
   );
-
 };
-
 
 export default AdminUsers;

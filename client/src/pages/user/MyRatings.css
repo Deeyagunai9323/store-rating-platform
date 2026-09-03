@@ -1,0 +1,87 @@
+.my-ratings-page {
+  width: 100%;
+}
+
+.ratings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rating-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.rating-store-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(25, 211, 197, 0.1);
+  color: var(--accent-primary);
+}
+
+.rating-store-info h3 {
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.rating-store-info p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.rating-current {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--warning);
+}
+
+.rating-current strong {
+  color: var(--text-primary);
+}
+
+.rating-card select {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.ratings-loading,
+.ratings-empty {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text-muted);
+}
+
+.ratings-empty h3 {
+  color: var(--text-primary);
+}
+
+@media (max-width: 700px) {
+
+  .rating-card {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .rating-card select {
+    grid-column: 2 / 3;
+  }
+
+}

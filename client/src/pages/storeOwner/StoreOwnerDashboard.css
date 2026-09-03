@@ -1,0 +1,253 @@
+.owner-dashboard {
+  width: 100%;
+}
+
+.owner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+
+.owner-header h1 {
+  font-size: 32px;
+  margin: 7px 0;
+}
+
+.owner-header p {
+  color: var(--text-secondary);
+}
+
+.owner-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.owner-stat-card {
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.owner-stat-card > svg {
+  color: var(--accent-primary);
+}
+
+.owner-stat-card div {
+  display: flex;
+  flex-direction: column;
+}
+
+.owner-stat-card span {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.owner-stat-card strong {
+  font-size: 25px;
+  color: var(--text-primary);
+}
+
+.owner-section {
+  margin-bottom: 30px;
+}
+
+.owner-section-header {
+  margin-bottom: 15px;
+}
+
+.owner-section-header h2 {
+  color: var(--text-primary);
+}
+
+.owner-section-header p {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.owner-store-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.owner-store-card {
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.owner-store-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.owner-store-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: rgba(25, 211, 197, 0.1);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.owner-store-top h3 {
+  color: var(--text-primary);
+}
+
+.owner-store-top span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.owner-store-info {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.owner-store-info div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.owner-rating-box {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  color: var(--warning);
+}
+
+.owner-rating-box div {
+  display: flex;
+  flex-direction: column;
+}
+
+.owner-rating-box span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.owner-rating-box strong {
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
+.owner-rating-table-wrapper {
+  overflow-x: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.owner-rating-table-wrapper table {
+  width: 100%;
+  min-width: 750px;
+  border-collapse: collapse;
+}
+
+.owner-rating-table-wrapper th,
+.owner-rating-table-wrapper td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.owner-rating-table-wrapper th {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.owner-rating-table-wrapper td {
+  color: var(--text-secondary);
+}
+
+.rating-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rating-user-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: rgba(25, 211, 197, 0.1);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-user div:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.rating-user strong {
+  color: var(--text-primary);
+}
+
+.rating-user span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.owner-rating-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--warning);
+}
+
+.owner-empty,
+.owner-loading {
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text-muted);
+}
+
+.owner-empty h3 {
+  color: var(--text-primary);
+}
+
+@media (max-width: 900px) {
+
+  .owner-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .owner-store-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+@media (max-width: 600px) {
+
+  .owner-stats {
+    grid-template-columns: 1fr;
+  }
+
+}

@@ -11,98 +11,89 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Unauthorized from "./pages/Unauthorized";
 
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/AdminUsers";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRoute from "./routes/RoleRoute";
-import AdminStores from "./pages/admin/AdminStores";
+
 import DashboardLayout from "./components/layout/DashboardLayout";
 
-const Placeholder = ({ title }) => {
-  return (
-    <div>
-      <div
-        style={{
-          marginBottom: "30px",
-        }}
-      >
-        <p
-          style={{
-            color: "#5eead4",
-            fontSize: "12px",
-            fontWeight: "700",
-            textTransform: "uppercase",
-            letterSpacing: "1px",
-          }}
-        >
-          StoreRate
-        </p>
+/* =========================================
+   LANDING PAGE
+========================================= */
 
-        <h1
-          style={{
-            margin: "8px 0",
-            fontSize: "30px",
-          }}
-        >
-          {title}
-        </h1>
+import LandingPage from "./pages/LandingPage/LandingPage";
 
-        <p
-          style={{
-            color: "#64748b",
-          }}
-        >
-          This module will be implemented next.
-        </p>
-      </div>
-    </div>
-  );
-};
+/* =========================================
+   ADMIN PAGES
+========================================= */
+
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminStores from "./pages/admin/AdminStores";
+
+/* =========================================
+   NORMAL USER PAGES
+========================================= */
+
+import UserStores from "./pages/user/UserStores";
+import MyRatings from "./pages/user/MyRatings";
+import UserProfile from "./pages/user/UserProfile";
+
+/* =========================================
+   STORE OWNER PAGES
+========================================= */
+
+import StoreOwnerDashboard from "./pages/storeOwner/StoreOwnerDashboard";
+import StoreOwnerRatings from "./pages/storeOwner/StoreOwnerRatings";
+import StoreOwnerProfile from "./pages/storeOwner/StoreOwnerProfile";
+
 
 const App = () => {
   return (
     <BrowserRouter>
+
       <AuthProvider>
+
         <Routes>
 
           {/* =========================================
-              PUBLIC
+              PUBLIC ROUTES
           ========================================= */}
 
+          {/* MAIN LANDING PAGE */}
           <Route
             path="/"
-            element={
-              <Navigate
-                to="/login"
-                replace
-              />
-            }
+            element={<LandingPage />}
           />
 
+          {/* LOGIN */}
           <Route
             path="/login"
             element={<Login />}
           />
 
+          {/* REGISTER */}
           <Route
             path="/register"
             element={<Register />}
           />
 
+          {/* UNAUTHORIZED */}
           <Route
             path="/unauthorized"
             element={<Unauthorized />}
           />
 
+
           {/* =========================================
-              PROTECTED
+              PROTECTED ROUTES
           ========================================= */}
 
           <Route element={<ProtectedRoute />}>
 
-            {/* =====================================
-                ADMIN
-            ===================================== */}
+
+            {/* =======================================
+                ADMIN PANEL
+            ======================================= */}
 
             <Route
               element={
@@ -112,9 +103,7 @@ const App = () => {
               }
             >
 
-              {/* =================================
-                  ADMIN DASHBOARD
-              ================================= */}
+              {/* ADMIN DASHBOARD */}
 
               <Route
                 path="/admin/dashboard"
@@ -125,37 +114,36 @@ const App = () => {
                 }
               />
 
-              {/* =================================
-                  ADMIN STORE MANAGEMENT
-              ================================= */}
 
-            <Route
-  path="/admin/stores"
-  element={
-    <DashboardLayout>
-      <AdminStores />
-    </DashboardLayout>
-  }
-/>
+              {/* ADMIN STORES */}
 
-              {/* =================================
-                  ADMIN USER MANAGEMENT
-              ================================= */}
+              <Route
+                path="/admin/stores"
+                element={
+                  <DashboardLayout>
+                    <AdminStores />
+                  </DashboardLayout>
+                }
+              />
 
-            <Route
-              path="/admin/users"
-              element={
-                <DashboardLayout>
-                  <AdminUsers />
-                </DashboardLayout>
-              }
-            />
+
+              {/* ADMIN USERS */}
+
+              <Route
+                path="/admin/users"
+                element={
+                  <DashboardLayout>
+                    <AdminUsers />
+                  </DashboardLayout>
+                }
+              />
 
             </Route>
 
-            {/* =====================================
-                NORMAL USER
-            ===================================== */}
+
+            {/* =======================================
+                NORMAL USER PANEL
+            ======================================= */}
 
             <Route
               element={
@@ -165,44 +153,47 @@ const App = () => {
               }
             >
 
+              {/* USER STORES */}
+
               <Route
                 path="/stores"
                 element={
                   <DashboardLayout>
-                    <Placeholder
-                      title="Stores"
-                    />
+                    <UserStores />
                   </DashboardLayout>
                 }
               />
+
+
+              {/* MY RATINGS */}
 
               <Route
                 path="/my-ratings"
                 element={
                   <DashboardLayout>
-                    <Placeholder
-                      title="My Ratings"
-                    />
+                    <MyRatings />
                   </DashboardLayout>
                 }
               />
+
+
+              {/* USER PROFILE */}
 
               <Route
                 path="/profile"
                 element={
                   <DashboardLayout>
-                    <Placeholder
-                      title="Profile"
-                    />
+                    <UserProfile />
                   </DashboardLayout>
                 }
               />
 
             </Route>
 
-            {/* =====================================
-                STORE OWNER
-            ===================================== */}
+
+            {/* =======================================
+                STORE OWNER PANEL
+            ======================================= */}
 
             <Route
               element={
@@ -212,35 +203,37 @@ const App = () => {
               }
             >
 
+              {/* STORE OWNER DASHBOARD */}
+
               <Route
                 path="/store-owner/dashboard"
                 element={
                   <DashboardLayout>
-                    <Placeholder
-                      title="Store Owner Dashboard"
-                    />
+                    <StoreOwnerDashboard />
                   </DashboardLayout>
                 }
               />
+
+
+              {/* STORE OWNER RATINGS */}
 
               <Route
                 path="/store-owner/ratings"
                 element={
                   <DashboardLayout>
-                    <Placeholder
-                      title="Ratings"
-                    />
+                    <StoreOwnerRatings />
                   </DashboardLayout>
                 }
               />
+
+
+              {/* STORE OWNER PROFILE */}
 
               <Route
                 path="/store-owner/profile"
                 element={
                   <DashboardLayout>
-                    <Placeholder
-                      title="Profile"
-                    />
+                    <StoreOwnerProfile />
                   </DashboardLayout>
                 }
               />
@@ -248,6 +241,7 @@ const App = () => {
             </Route>
 
           </Route>
+
 
           {/* =========================================
               FALLBACK
@@ -257,16 +251,19 @@ const App = () => {
             path="*"
             element={
               <Navigate
-                to="/login"
+                to="/"
                 replace
               />
             }
           />
 
         </Routes>
+
       </AuthProvider>
+
     </BrowserRouter>
   );
 };
+
 
 export default App;
