@@ -153,10 +153,14 @@ const createStoreValidation = [
 // LIST FILTER VALIDATION
 // =====================================================
 
+// =====================================================
+// LIST FILTER VALIDATION
+// =====================================================
+
 const userListValidation = [
 
     query("name")
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({
             max: 60
@@ -166,7 +170,7 @@ const userListValidation = [
         ),
 
     query("email")
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isEmail()
         .withMessage(
@@ -174,7 +178,7 @@ const userListValidation = [
         ),
 
     query("address")
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({
             max: 400
@@ -184,7 +188,7 @@ const userListValidation = [
         ),
 
     query("role")
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isIn([
             "ADMIN",
@@ -196,7 +200,7 @@ const userListValidation = [
         ),
 
     query("sortBy")
-        .optional()
+        .optional({ checkFalsy: true })
         .isIn([
             "name",
             "email",
@@ -209,7 +213,7 @@ const userListValidation = [
         ),
 
     query("order")
-        .optional()
+        .optional({ checkFalsy: true })
         .toUpperCase()
         .isIn([
             "ASC",
@@ -226,10 +230,14 @@ const userListValidation = [
 // STORE LIST VALIDATION
 // =====================================================
 
+// =====================================================
+// STORE LIST VALIDATION
+// =====================================================
+
 const storeListValidation = [
 
     query("name")
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({
             max: 100
@@ -239,7 +247,7 @@ const storeListValidation = [
         ),
 
     query("email")
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isEmail()
         .withMessage(
@@ -247,7 +255,7 @@ const storeListValidation = [
         ),
 
     query("address")
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({
             max: 400
@@ -257,7 +265,7 @@ const storeListValidation = [
         ),
 
     query("sortBy")
-        .optional()
+        .optional({ checkFalsy: true })
         .isIn([
             "name",
             "email",
@@ -270,7 +278,7 @@ const storeListValidation = [
         ),
 
     query("order")
-        .optional()
+        .optional({ checkFalsy: true })
         .toUpperCase()
         .isIn([
             "ASC",
